@@ -1176,8 +1176,11 @@
   }
 
   .choice-button {
+    padding-top: 70px;
+    padding-bottom: 70px;
+
     width: 100%;
-    text-align: left;
+    text-align: center;
   }
 
   .composer textarea {
