@@ -18,6 +18,14 @@ async function listCampaigns(req, res) {
   try {
     const campaigns = await Campaign.aggregate([
       {
+        $match: {
+          owner: req.user._id,
+        },
+      },
+      {
+        $sort: { updatedAt: -1 },
+      },
+      {
         $project: {
           title: 1,
           playerName: 1,
@@ -36,9 +44,6 @@ async function listCampaigns(req, res) {
           inventoryCount: { $size: '$inventory' },
         },
       },
-      {
-        $sort: { updatedAt: -1 },
-      },
     ]);
 
     return res.json({
@@ -52,7 +57,10 @@ async function listCampaigns(req, res) {
 
 async function getCampaign(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId).lean();
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    }).lean();
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -92,6 +100,7 @@ async function createCampaign(req, res) {
     };
 
     const campaign = await Campaign.create({
+      owner: req.user._id,
       ...trimmedCampaign,
       messages: [],
       inventory: [],
@@ -121,7 +130,10 @@ async function createCampaign(req, res) {
 
 async function updateCampaign(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId);
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -168,7 +180,10 @@ async function updateCampaign(req, res) {
 
 async function deleteCampaign(req, res) {
   try {
-    const campaign = await Campaign.findByIdAndDelete(req.params.campaignId);
+    const campaign = await Campaign.findOneAndDelete({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -187,7 +202,10 @@ async function deleteCampaign(req, res) {
 
 async function addMessage(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId);
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -247,7 +265,10 @@ async function addMessage(req, res) {
 
 async function addInventoryItem(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId);
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -267,7 +288,10 @@ async function addInventoryItem(req, res) {
 
 async function updateInventoryItem(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId);
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });
@@ -298,7 +322,10 @@ async function updateInventoryItem(req, res) {
 
 async function deleteInventoryItem(req, res) {
   try {
-    const campaign = await Campaign.findById(req.params.campaignId);
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
 
     if (!campaign) {
       return res.status(404).json({ error: 'Campaign not found.' });

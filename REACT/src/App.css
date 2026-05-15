@@ -1,13 +1,24 @@
 .intro-shell,
-.session-shell {
+.session-shell,
+.landing-shell,
+.auth-shell {
   min-height: 100vh;
   min-height: 100dvh;
   padding: 28px;
 }
 
-.intro-shell {
+.intro-shell,
+.auth-shell {
   display: grid;
   place-items: center;
+}
+
+.landing-shell {
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
 .intro-layout {
@@ -101,6 +112,10 @@
   right: 18px;
   bottom: 72px;
   z-index: 35;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .intro-actions .ghost {
@@ -121,6 +136,29 @@
   border-radius: 999px;
   background: rgba(27, 18, 13, 0.92);
   backdrop-filter: blur(14px);
+}
+
+.account-chip,
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.account-chip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(218, 188, 138, 0.18);
+  background: rgba(27, 18, 13, 0.92);
+  color: var(--text-soft);
+  backdrop-filter: blur(14px);
+}
+
+.brand-mark {
+  color: var(--text-strong);
+  font-family: var(--display);
+  font-size: 1.1rem;
 }
 
 .campaign-library {
@@ -311,6 +349,15 @@
 .ghost,
 .topbar-toggle {
   padding: 13px 18px;
+}
+
+.primary,
+.ghost {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .primary {
@@ -843,6 +890,221 @@
   gap: 10px;
 }
 
+.landing-nav,
+.landing-nav-actions,
+.landing-cta-row,
+.landing-stat-strip,
+.password-panel-header {
+  display: flex;
+  align-items: center;
+}
+
+.landing-nav,
+.landing-footer-card {
+  border: 1px solid var(--edge);
+  background: rgba(25, 16, 11, 0.9);
+  border-radius: 24px;
+  box-shadow: 0 18px 40px rgba(10, 6, 4, 0.16);
+}
+
+.landing-nav {
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 22px;
+}
+
+.landing-nav-actions,
+.landing-cta-row {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.95fr);
+  gap: 20px;
+}
+
+.landing-copy,
+.landing-showcase-card,
+.auth-card {
+  border: 1px solid var(--edge);
+  border-radius: 28px;
+  box-shadow: 0 18px 40px rgba(10, 6, 4, 0.16);
+}
+
+.landing-copy,
+.auth-card {
+  padding: 36px;
+  background:
+    radial-gradient(circle at top left, rgba(241, 187, 99, 0.15), transparent 34%),
+    linear-gradient(180deg, rgba(42, 19, 10, 0.96), rgba(24, 14, 10, 0.98));
+}
+
+.landing-copy {
+  display: grid;
+  align-content: center;
+  gap: 18px;
+  min-height: 100%;
+}
+
+.landing-showcase {
+  display: grid;
+  gap: 20px;
+}
+
+.landing-showcase-card {
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(249, 203, 132, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(34, 20, 14, 0.96), rgba(20, 13, 10, 0.98));
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.feature-card,
+.landing-stat-strip,
+.password-panel {
+  border: 1px solid rgba(218, 188, 138, 0.14);
+  background: rgba(255, 248, 232, 0.04);
+}
+
+.feature-card {
+  padding: 16px;
+  border-radius: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.feature-card p {
+  color: var(--text-soft);
+}
+
+.feature-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(241, 187, 99, 0.12);
+  color: var(--accent-soft);
+}
+
+.landing-stat-strip {
+  border-radius: 22px;
+  padding: 16px 18px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.landing-stat-strip span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent-soft);
+}
+
+.landing-stat-strip strong {
+  color: var(--text-strong);
+}
+
+.landing-footer-card {
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.inline-link-button {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-card {
+  width: min(720px, 100%);
+  display: grid;
+  gap: 24px;
+}
+
+.auth-card-compact {
+  width: min(520px, 100%);
+}
+
+.auth-card-copy,
+.auth-form,
+.password-rule-list {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form input {
+  width: 100%;
+  border: 1px solid rgba(218, 188, 138, 0.22);
+  background: rgba(255, 248, 232, 0.08);
+  color: var(--text-strong);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: rgba(242, 185, 91, 0.65);
+  background: rgba(255, 248, 232, 0.14);
+}
+
+.password-panel {
+  border-radius: 20px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.password-panel-header {
+  gap: 8px;
+  color: var(--text-strong);
+}
+
+.password-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-soft);
+}
+
+.password-rule.passed {
+  color: #b7f0c7;
+}
+
+.form-error,
+.auth-switch-copy {
+  color: var(--text-soft);
+}
+
+.form-error {
+  color: #ffcbc4;
+}
+
+.auth-secondary-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-switch-copy a {
+  color: var(--accent-soft);
+}
+
 .choice-button {
   display: block;
 
@@ -946,6 +1208,8 @@
 @media (max-width: 900px) {
   .intro-shell,
   .session-shell,
+  .landing-shell,
+  .auth-shell,
   .modal-backdrop {
     padding: 18px;
   }
@@ -959,6 +1223,11 @@
   }
 
   .intro-layout-wide {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero,
+  .feature-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1035,6 +1304,8 @@
 @media (max-width: 720px) {
   .intro-shell,
   .session-shell,
+  .landing-shell,
+  .auth-shell,
   .modal-backdrop {
     padding: 14px;
   }
@@ -1217,6 +1488,24 @@
     justify-content: flex-end;
   }
 
+  .landing-nav,
+  .landing-footer-card,
+  .landing-stat-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .landing-nav-actions,
+  .landing-cta-row {
+    width: 100%;
+  }
+
+  .landing-nav-actions > *,
+  .landing-cta-row > *,
+  .landing-footer-card > * {
+    flex: 1 1 100%;
+  }
+
   .intro-mobile-toolbar {
     grid-template-columns: 1fr;
   }
@@ -1230,6 +1519,8 @@
 @media (max-width: 480px) {
   .intro-shell,
   .session-shell,
+  .landing-shell,
+  .auth-shell,
   .modal-backdrop {
     padding: 10px;
   }
@@ -1298,6 +1589,13 @@
 
   .mobile-menu-header {
     gap: 10px;
+  }
+
+  .landing-copy,
+  .landing-showcase-card,
+  .auth-card {
+    padding: 20px;
+    border-radius: 22px;
   }
 
   .mobile-menu-modal {
