@@ -844,9 +844,21 @@
 }
 
 .choice-button {
-  padding: 10px 14px;
+  display: block;
+
+  width: 100%;
   max-width: 100%;
-  overflow-wrap: anywhere;
+  min-width: 0;
+
+  padding: 10px 50px;
+
+  box-sizing: border-box;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  overflow: hidden;
 }
 
 .composer {
