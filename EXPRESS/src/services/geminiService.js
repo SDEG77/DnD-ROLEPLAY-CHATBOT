@@ -425,7 +425,9 @@ function isQuotaOrRetryableProviderError(error) {
     message.includes('resource_exhausted') ||
     message.includes('too many requests') ||
     message.includes('exceeded your current quota') ||
-    message.includes('usage limit')
+    message.includes('usage limit') ||
+    message.includes('failed_precondition') ||
+    message.includes('user location is not supported')
   );
 }
 
