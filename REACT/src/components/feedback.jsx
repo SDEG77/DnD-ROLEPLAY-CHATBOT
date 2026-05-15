@@ -40,14 +40,21 @@ export function ErrorViewer({ open, detail, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section className="modal-panel error-viewer" onClick={(event) => event.stopPropagation()}>
-        <div className="inventory-header">
-          <div>
-            <p className="choice-label">Error details</p>
-            <h3>Full provider response</h3>
+        <div className="modal-header-shell">
+          <div className="modal-header">
+            <div>
+              <p className="choice-label">Error details</p>
+              <h3>Full provider response</h3>
+            </div>
+            <button
+              type="button"
+              className="ghost modal-close-button"
+              onClick={onClose}
+              aria-label="Close error viewer"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button type="button" className="ghost inventory-close" onClick={onClose}>
-            Close
-          </button>
         </div>
         <pre className="error-detail">{detail}</pre>
       </section>
@@ -63,14 +70,21 @@ export function AiInfoModal({ open, onClose }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section className="modal-panel ai-info-modal" onClick={(event) => event.stopPropagation()}>
-        <div className="inventory-header">
-          <div>
-            <p className="choice-label">Available AI providers</p>
-            <h3>Providers used by this project</h3>
+        <div className="modal-header-shell">
+          <div className="modal-header">
+            <div>
+              <p className="choice-label">Available AI providers</p>
+              <h3>Providers used by this project</h3>
+            </div>
+            <button
+              type="button"
+              className="ghost modal-close-button"
+              onClick={onClose}
+              aria-label="Close AI providers"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button type="button" className="ghost inventory-close" onClick={onClose}>
-            Close
-          </button>
         </div>
 
         <div className="ai-provider-grid">
@@ -114,12 +128,22 @@ export function InventoryModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <section className="modal-panel inventory-modal" onClick={(event) => event.stopPropagation()}>
-        <div className="inventory-header">
-          <div>
-            <p className="choice-label">Inventory</p>
-            <h3>Current carried gear</h3>
+        <div className="modal-header-shell">
+          <div className="modal-header">
+            <div>
+              <p className="choice-label">Inventory</p>
+              <h3>Current carried gear</h3>
+            </div>
+            <button
+              type="button"
+              className="ghost modal-close-button"
+              onClick={onClose}
+              aria-label="Close inventory"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <div className="inventory-toolbar">
+          <div className="inventory-toolbar modal-toolbar">
             <button
               type="button"
               className="primary"
@@ -127,9 +151,6 @@ export function InventoryModal({
               disabled={inventorySaving}
             >
               Add new item
-            </button>
-            <button type="button" className="ghost inventory-close" onClick={onClose}>
-              Close
             </button>
           </div>
         </div>
@@ -194,14 +215,21 @@ export function InventoryEditorModal({
         className="modal-panel inventory-editor-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="inventory-header">
-          <div>
-            <p className="choice-label">Inventory editor</p>
-            <h3>{editingInventoryId ? 'Edit item' : 'Add item'}</h3>
+        <div className="modal-header-shell">
+          <div className="modal-header">
+            <div>
+              <p className="choice-label">Inventory editor</p>
+              <h3>{editingInventoryId ? 'Edit item' : 'Add item'}</h3>
+            </div>
+            <button
+              type="button"
+              className="ghost modal-close-button"
+              onClick={onClose}
+              aria-label="Close inventory editor"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button type="button" className="ghost inventory-close" onClick={onClose}>
-            Close
-          </button>
         </div>
 
         <form className="inventory-form" onSubmit={onSubmit}>

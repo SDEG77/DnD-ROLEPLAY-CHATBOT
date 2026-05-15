@@ -5,7 +5,9 @@ import {
   ChevronsDown,
   Menu,
   Minimize2,
+  X,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import {
   InventoryEditorModal,
   InventoryModal,
@@ -48,7 +50,86 @@ function SessionScreen({
   onBeginCampaignEdit,
   onDeleteCampaign,
   onScrollChatToBottom,
+  onOpenAiInfo,
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isMobileLayout, setIsMobileLayout] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 720px)')
+
+    const updateLayout = () => {
+      setIsMobileLayout(mediaQuery.matches)
+    }
+
+    updateLayout()
+    mediaQuery.addEventListener('change', updateLayout)
+
+    return () => mediaQuery.removeEventListener('change', updateLayout)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobileLayout && mobileMenuOpen) {
+      setMobileMenuOpen(false)
+    }
+  }, [isMobileLayout, mobileMenuOpen])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) {
+      return undefined
+    }
+
+    const originalOverflow = document.body.style.overflow
+
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [mobileMenuOpen])
+
+  function openMobileMenu() {
+    setMobileMenuOpen(true)
+  }
+
+  function closeMobileMenu() {
+    setMobileMenuOpen(false)
+  }
+
+  function handleJumpToBottom() {
+    closeMobileMenu()
+    onScrollChatToBottom('smooth')
+  }
+
+  function handleOpenInventory() {
+    closeMobileMenu()
+    onOpenInventory()
+  }
+
+  function handleOpenCampaignManager() {
+    closeMobileMenu()
+    onOpenCampaignManager()
+  }
+
+  function handleOpenAiInfo() {
+    closeMobileMenu()
+    onOpenAiInfo()
+  }
+
+  function handleHideControls() {
+    closeMobileMenu()
+    setTopbarVisible(false)
+  }
+
   return (
     <>
       {!topbarVisible ? (
@@ -65,43 +146,67 @@ function SessionScreen({
 
       <main className={`session-stage ${topbarVisible ? 'with-topbar' : 'without-topbar'}`}>
         {topbarVisible ? (
-          <header className="story-header fixed">
-            <div>
-              <p className="eyebrow">Live session</p>
-              <h2>{campaign.title}</h2>
-            </div>
-            <div className="campaign-actions">
-              <span className="campaign-badge">{campaign.characterName}</span>
-              <span className="campaign-badge">{campaign.tone}</span>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={() => onScrollChatToBottom('smooth')}
-                aria-label="Jump to bottom"
-                title="Jump to bottom"
-              >
-                <ChevronsDown size={18} />
-              </button>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={onOpenCampaignManager}
-                aria-label="Open campaign vault"
-                title="Campaign vault"
-              >
-                <BookCopy size={18} />
-              </button>
-              <button
-                type="button"
-                className="icon-button"
-                onClick={() => setTopbarVisible(false)}
-                aria-label="Hide top bar"
-                title="Hide top bar"
-              >
-                <Minimize2 size={18} />
-              </button>
-            </div>
-          </header>
+          isMobileLayout ? (
+            <header className="story-header fixed mobile-story-header">
+              <div className="mobile-story-header-main">
+                <div className="mobile-story-copy">
+                  <p className="eyebrow">Live session</p>
+                  <h2>{campaign.title}</h2>
+                </div>
+                <button
+                  type="button"
+                  className="icon-button mobile-menu-trigger"
+                  onClick={openMobileMenu}
+                  aria-label="Open session menu"
+                  title="Session menu"
+                >
+                  <Menu size={18} />
+                </button>
+              </div>
+              <div className="campaign-actions mobile-campaign-summary">
+                <span className="campaign-badge">{campaign.characterName}</span>
+                <span className="campaign-badge">{campaign.tone}</span>
+              </div>
+            </header>
+          ) : (
+            <header className="story-header fixed">
+              <div>
+                <p className="eyebrow">Live session</p>
+                <h2>{campaign.title}</h2>
+              </div>
+              <div className="campaign-actions">
+                <span className="campaign-badge">{campaign.characterName}</span>
+                <span className="campaign-badge">{campaign.tone}</span>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => onScrollChatToBottom('smooth')}
+                  aria-label="Jump to bottom"
+                  title="Jump to bottom"
+                >
+                  <ChevronsDown size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={onOpenCampaignManager}
+                  aria-label="Open campaign vault"
+                  title="Campaign vault"
+                >
+                  <BookCopy size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={() => setTopbarVisible(false)}
+                  aria-label="Hide top bar"
+                  title="Hide top bar"
+                >
+                  <Minimize2 size={18} />
+                </button>
+              </div>
+            </header>
+          )
         ) : null}
 
         <section className="chat-log" ref={chatViewportRef}>
@@ -162,15 +267,82 @@ function SessionScreen({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="floating-action inventory-fab"
-        onClick={onOpenInventory}
-        aria-label="Open inventory"
-        title="Inventory"
-      >
-        <Backpack size={20} />
-      </button>
+      {isMobileLayout && mobileMenuOpen ? (
+        <div className="modal-backdrop mobile-menu-backdrop" onClick={closeMobileMenu}>
+          <section
+            className="modal-panel mobile-menu-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header-shell">
+              <div className="modal-header mobile-menu-header">
+                <div>
+                  <p className="choice-label">Session menu</p>
+                  <h3>{campaign.title}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="ghost modal-close-button"
+                  onClick={closeMobileMenu}
+                  aria-label="Close session menu"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="mobile-menu-summary">
+              <span className="campaign-badge">{campaign.characterName}</span>
+              <span className="campaign-badge">{campaign.tone}</span>
+              <span className="campaign-badge">
+                {formatAiProvider(campaign)} / {formatAiMode(campaign)}
+              </span>
+            </div>
+
+            <div className="mobile-menu-actions">
+              <button type="button" className="ghost mobile-menu-action" onClick={handleJumpToBottom}>
+                <ChevronsDown size={18} />
+                Jump to latest
+              </button>
+              <button
+                type="button"
+                className="ghost mobile-menu-action"
+                onClick={handleOpenInventory}
+              >
+                <Backpack size={18} />
+                Open inventory
+              </button>
+              <button
+                type="button"
+                className="ghost mobile-menu-action"
+                onClick={handleOpenCampaignManager}
+              >
+                <BookCopy size={18} />
+                Campaign vault
+              </button>
+              <button type="button" className="ghost mobile-menu-action" onClick={handleOpenAiInfo}>
+                <Bot size={18} />
+                View AI details
+              </button>
+              <button type="button" className="ghost mobile-menu-action" onClick={handleHideControls}>
+                <Minimize2 size={18} />
+                Hide controls
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {!isMobileLayout ? (
+        <button
+          type="button"
+          className="floating-action inventory-fab"
+          onClick={onOpenInventory}
+          aria-label="Open inventory"
+          title="Inventory"
+        >
+          <Backpack size={20} />
+        </button>
+      ) : null}
 
       <InventoryModal
         open={inventoryOpen}
