@@ -78,6 +78,12 @@ const inventoryItemSchema = new mongoose.Schema(
 
 const campaignSchema = new mongoose.Schema(
   {
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -144,5 +150,7 @@ const campaignSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+campaignSchema.index({ owner: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('Campaign', campaignSchema);

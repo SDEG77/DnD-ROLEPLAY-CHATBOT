@@ -15,9 +15,11 @@ import {
   extractChoices,
 } from '../utils/campaign'
 
-const STORAGE_KEY = 'dnd-dm-active-campaign'
+function getStorageKey(userId) {
+  return `dnd-dm-active-campaign:${userId}`
+}
 
-export function useCampaignSession() {
+export function useCampaignSession(userId, onAuthFailure) {
   const [campaignForm, setCampaignForm] = useState(defaultCampaignForm)
   const [campaigns, setCampaigns] = useState([])
   const [campaign, setCampaign] = useState(null)
@@ -41,13 +43,20 @@ export function useCampaignSession() {
   const chatViewportRef = useRef(null)
 
   useEffect(() => {
+    setCampaign(null)
+    setCampaigns([])
+    setEditingCampaignId(null)
+    setCampaignForm(defaultCampaignForm)
+    setDraft('')
+    setInventoryOpen(false)
+    closeInventoryEditor()
     void refreshCampaigns()
-    const campaignId = window.localStorage.getItem(STORAGE_KEY)
+    const campaignId = window.localStorage.getItem(getStorageKey(userId))
 
     if (campaignId) {
       void loadCampaign(campaignId)
     }
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     if (!chatViewportRef.current || !campaign?.messages?.length) {
@@ -81,6 +90,9 @@ export function useCampaignSession() {
       const data = await fetchCampaigns()
       setCampaigns(data.campaigns)
     } catch (err) {
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setCampaignsLoading(false)
@@ -93,12 +105,15 @@ export function useCampaignSession() {
     try {
       const data = await fetchCampaign(campaignId)
       setCampaign(data.campaign)
-      window.localStorage.setItem(STORAGE_KEY, data.campaign._id)
+      window.localStorage.setItem(getStorageKey(userId), data.campaign._id)
       setTopbarVisible(true)
       setDraft('')
     } catch (err) {
-      window.localStorage.removeItem(STORAGE_KEY)
+      window.localStorage.removeItem(getStorageKey(userId))
       setCampaign(null)
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setLoading(false)
@@ -117,10 +132,13 @@ export function useCampaignSession() {
       setCampaign(data.campaign)
       setEditingCampaignId(null)
       setCampaignManagerOpen(false)
-      window.localStorage.setItem(STORAGE_KEY, data.campaign._id)
+      window.localStorage.setItem(getStorageKey(userId), data.campaign._id)
       setDraft('')
       await refreshCampaigns()
     } catch (err) {
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setCampaignSaving(false)
@@ -140,7 +158,7 @@ export function useCampaignSession() {
     setDraft('')
     setInventoryOpen(false)
     closeInventoryEditor()
-    window.localStorage.removeItem(STORAGE_KEY)
+    window.localStorage.removeItem(getStorageKey(userId))
   }
 
   function beginCampaignEdit(campaignSummary) {
@@ -182,6 +200,9 @@ export function useCampaignSession() {
         setCampaignForm(defaultCampaignForm)
       }
     } catch (err) {
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setCampaignDeletingId(null)
@@ -216,6 +237,9 @@ export function useCampaignSession() {
         await refreshCampaigns()
       }
 
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setLoading(false)
@@ -237,6 +261,9 @@ export function useCampaignSession() {
       closeInventoryEditor()
       await refreshCampaigns()
     } catch (err) {
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setInventorySaving(false)
@@ -260,6 +287,9 @@ export function useCampaignSession() {
 
       await refreshCampaigns()
     } catch (err) {
+      if (err.status === 401) {
+        onAuthFailure?.()
+      }
       showError(err)
     } finally {
       setInventorySaving(false)
@@ -347,7 +377,7 @@ export function useCampaignSession() {
     setEditingCampaignId(null)
     setCampaignForm(defaultCampaignForm)
 
-    const activeCampaignId = window.localStorage.getItem(STORAGE_KEY)
+    const activeCampaignId = window.localStorage.getItem(getStorageKey(userId))
 
     if (activeCampaignId) {
       void loadCampaign(activeCampaignId)

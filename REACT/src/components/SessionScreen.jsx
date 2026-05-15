@@ -16,6 +16,7 @@ import CampaignManagerModal from './CampaignManagerModal'
 import { formatAiMode, formatAiProvider } from '../utils/campaign'
 
 function SessionScreen({
+  user,
   campaign,
   campaigns,
   campaignsLoading,
@@ -51,6 +52,7 @@ function SessionScreen({
   onDeleteCampaign,
   onScrollChatToBottom,
   onOpenAiInfo,
+  onLogout,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
@@ -164,6 +166,7 @@ function SessionScreen({
                 </button>
               </div>
               <div className="campaign-actions mobile-campaign-summary">
+                <span className="campaign-badge">{user?.name}</span>
                 <span className="campaign-badge">{campaign.characterName}</span>
                 <span className="campaign-badge">{campaign.tone}</span>
               </div>
@@ -177,6 +180,7 @@ function SessionScreen({
               <div className="campaign-actions">
                 <span className="campaign-badge">{campaign.characterName}</span>
                 <span className="campaign-badge">{campaign.tone}</span>
+                <span className="campaign-badge">{user?.name}</span>
                 <button
                   type="button"
                   className="icon-button"
@@ -194,6 +198,15 @@ function SessionScreen({
                   title="Campaign vault"
                 >
                   <BookCopy size={18} />
+                </button>
+                <button
+                  type="button"
+                  className="icon-button"
+                  onClick={onLogout}
+                  aria-label="Log out"
+                  title="Log out"
+                >
+                  <X size={18} />
                 </button>
                 <button
                   type="button"
@@ -322,6 +335,10 @@ function SessionScreen({
               <button type="button" className="ghost mobile-menu-action" onClick={handleOpenAiInfo}>
                 <Bot size={18} />
                 View AI details
+              </button>
+              <button type="button" className="ghost mobile-menu-action" onClick={onLogout}>
+                <X size={18} />
+                Log out
               </button>
               <button type="button" className="ghost mobile-menu-action" onClick={handleHideControls}>
                 <Minimize2 size={18} />

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { formatRelativeCampaignActivity } from '../utils/campaign'
 
 function IntroScreen({
+  user,
   aiInfoOpen,
   campaign,
   campaigns,
@@ -19,6 +20,7 @@ function IntroScreen({
   onBeginCampaignEdit,
   onDeleteCampaign,
   onCancelCampaignForm,
+  onLogout,
 }) {
   const [isMobileLayout, setIsMobileLayout] = useState(false)
   const [mobileVaultOpen, setMobileVaultOpen] = useState(false)
@@ -148,8 +150,12 @@ function IntroScreen({
   return (
     <div className="intro-layout intro-layout-wide">
       <div className="intro-actions">
+        <span className="account-chip">Signed in as {user?.name}</span>
         <button type="button" className="ghost" onClick={onOpenAiInfo} aria-pressed={aiInfoOpen}>
           View AIs
+        </button>
+        <button type="button" className="ghost" onClick={onLogout}>
+          Log out
         </button>
       </div>
 

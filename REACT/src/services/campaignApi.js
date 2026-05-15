@@ -1,3 +1,5 @@
+import { clearAuthSession, getCsrfToken } from '../utils/authStorage'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 export async function fetchCampaign(campaignId) {
@@ -57,9 +59,13 @@ export async function deleteInventoryItem(campaignId, itemId) {
 }
 
 async function request(path, options = {}) {
+  const method = options.method || 'GET'
+  const csrfToken = getCsrfToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(!['GET', 'HEAD'].includes(method) && csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       ...(options.headers || {}),
     },
     ...options,
@@ -69,9 +75,14 @@ async function request(path, options = {}) {
   if (!response.ok) {
     const detail = [data.error, data.detail].filter(Boolean).join('\n') || 'Request failed.'
     const error = new Error(detail)
+    error.status = response.status
 
     if (data.campaign) {
       error.campaign = data.campaign
+    }
+
+    if (response.status === 401) {
+      clearAuthSession()
     }
 
     throw error
