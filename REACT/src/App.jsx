@@ -130,8 +130,10 @@ function App() {
         onBeginCampaignEdit={beginCampaignEdit}
         onDeleteCampaign={deleteCampaign}
         onScrollChatToBottom={scrollChatToBottom}
+        onOpenAiInfo={() => setAiInfoOpen(true)}
       />
 
+      <AiInfoModal open={aiInfoOpen} onClose={() => setAiInfoOpen(false)} />
       <Toast toast={toast} onClose={dismissToast} onViewError={openErrorViewer} />
       <ErrorViewer open={errorViewerOpen} detail={errorDetail} onClose={closeErrorViewer} />
     </div>

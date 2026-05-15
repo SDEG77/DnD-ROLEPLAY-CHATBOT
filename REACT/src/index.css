@@ -31,15 +31,18 @@
 
 html {
   background: var(--bg);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   background:
     linear-gradient(180deg, rgba(255, 173, 92, 0.03), transparent 22%),
     var(--bg);
+  overflow-x: hidden;
 }
 
 body::before {
@@ -60,6 +63,7 @@ textarea {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 h1,
@@ -75,6 +79,7 @@ h3 {
 h1 {
   font-size: clamp(2.7rem, 3vw, 4rem);
   line-height: 0.96;
+  overflow-wrap: anywhere;
 }
 
 h2 {
@@ -93,4 +98,23 @@ code {
   font-family: var(--mono);
   font-size: 0.92em;
   color: var(--accent-soft);
+}
+
+@media (max-width: 480px) {
+  :root {
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2.05rem, 11vw, 2.7rem);
+    line-height: 1.02;
+  }
+
+  h2 {
+    font-size: clamp(1.28rem, 7vw, 1.7rem);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+  }
 }

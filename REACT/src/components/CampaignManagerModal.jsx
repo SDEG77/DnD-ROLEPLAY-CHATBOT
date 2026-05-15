@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { formatRelativeCampaignActivity } from '../utils/campaign'
 
 function CampaignManagerModal({
@@ -23,18 +23,25 @@ function CampaignManagerModal({
         className="modal-panel campaign-manager-modal"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="inventory-header">
-          <div>
-            <p className="choice-label">Campaign vault</p>
-            <h3>Switch or manage sessions</h3>
+        <div className="modal-header-shell">
+          <div className="modal-header">
+            <div>
+              <p className="choice-label">Campaign vault</p>
+              <h3>Switch or manage sessions</h3>
+            </div>
+            <button
+              type="button"
+              className="ghost modal-close-button"
+              onClick={onClose}
+              aria-label="Close campaign vault"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <div className="inventory-toolbar">
+          <div className="inventory-toolbar modal-toolbar">
             <button type="button" className="primary" onClick={onBeginCampaignCreate}>
               <Plus size={16} />
               New campaign
-            </button>
-            <button type="button" className="ghost inventory-close" onClick={onClose}>
-              Close
             </button>
           </div>
         </div>
