@@ -1,4 +1,4 @@
-import { clearAuthSession, getCsrfToken } from '../utils/authStorage'
+import { clearAuthSession, getStoredCsrfToken } from '../utils/authStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -60,7 +60,7 @@ export async function deleteInventoryItem(campaignId, itemId) {
 
 async function request(path, options = {}) {
   const method = options.method || 'GET'
-  const csrfToken = getCsrfToken()
+  const csrfToken = getStoredCsrfToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: 'include',
     headers: {

@@ -68,6 +68,12 @@ function setAuthCookies(res, token) {
   return csrfToken;
 }
 
+function setCsrfCookie(res) {
+  const csrfToken = createCsrfToken();
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, getCsrfCookieOptions());
+  return csrfToken;
+}
+
 function clearAuthCookies(res) {
   const clearOptions = getClearCookieOptions();
   res.clearCookie(AUTH_COOKIE_NAME, clearOptions);
@@ -82,5 +88,6 @@ module.exports = {
   CSRF_COOKIE_NAME,
   clearAuthCookies,
   getTokenMaxAgeMs,
+  setCsrfCookie,
   setAuthCookies,
 };

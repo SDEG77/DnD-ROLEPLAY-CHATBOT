@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { getJwtSecret } = require('../middlewares/authMiddleware');
 const { getPasswordValidationErrors } = require('../utils/passwordPolicy');
-const { clearAuthCookies, setAuthCookies } = require('../utils/authCookies');
+const { clearAuthCookies, setAuthCookies, setCsrfCookie } = require('../utils/authCookies');
 
 function sanitizeUser(user) {
   return {
@@ -55,9 +55,10 @@ async function register(req, res) {
       email,
       passwordHash,
     });
-    setAuthCookies(res, signToken(user));
+    const csrfToken = setAuthCookies(res, signToken(user));
 
     return res.status(201).json({
+      csrfToken,
       user: sanitizeUser(user),
     });
   } catch (error) {
@@ -96,9 +97,10 @@ async function login(req, res) {
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    setAuthCookies(res, signToken(user));
+    const csrfToken = setAuthCookies(res, signToken(user));
 
     return res.json({
+      csrfToken,
       user: sanitizeUser(user),
     });
   } catch (error) {
@@ -111,7 +113,8 @@ async function login(req, res) {
 }
 
 async function getCurrentUser(req, res) {
-  return res.json({ user: req.user });
+  const csrfToken = setCsrfCookie(res);
+  return res.json({ csrfToken, user: req.user });
 }
 
 async function logout(req, res) {

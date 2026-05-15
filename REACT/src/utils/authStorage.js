@@ -1,25 +1,19 @@
-const CSRF_COOKIE_NAME = 'dnd_dm_csrf'
+const CSRF_TOKEN_KEY = 'dnd-dm-csrf-token'
 
 export function getStoredUser() {
   return null
 }
 
-export function storeAuthSession() {
-  return undefined
+export function storeAuthSession({ csrfToken } = {}) {
+  if (csrfToken) {
+    window.sessionStorage.setItem(CSRF_TOKEN_KEY, csrfToken)
+  }
 }
 
 export function clearAuthSession() {
-  return undefined
+  window.sessionStorage.removeItem(CSRF_TOKEN_KEY)
 }
 
-export function getCsrfToken() {
-  const cookieEntry = document.cookie
-    .split('; ')
-    .find((entry) => entry.startsWith(`${CSRF_COOKIE_NAME}=`))
-
-  if (!cookieEntry) {
-    return ''
-  }
-
-  return decodeURIComponent(cookieEntry.split('=').slice(1).join('='))
+export function getStoredCsrfToken() {
+  return window.sessionStorage.getItem(CSRF_TOKEN_KEY) || ''
 }
