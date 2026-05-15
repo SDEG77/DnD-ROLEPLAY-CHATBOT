@@ -112,7 +112,10 @@ async function createCampaign(req, res) {
     return res.status(201).json({ campaign });
   } catch (error) {
     console.error('Failed to create campaign:', error);
-    return res.status(500).json({ error: 'Failed to create campaign.' });
+    return res.status(500).json({
+      error: 'Failed to create campaign.',
+      detail: error.message || 'Unknown server error.',
+    });
   }
 }
 
@@ -328,21 +331,31 @@ async function buildOpeningAssistantMessage(campaign) {
     };
   }
 
-  const openingScene = await generateDungeonMasterReply({
-    campaign,
-    userMessage: 'Begin the campaign with a vivid opening scene, then invite the player to act.',
-    isOpeningScene: true,
-  });
+  try {
+    const openingScene = await generateDungeonMasterReply({
+      campaign,
+      userMessage: 'Begin the campaign with a vivid opening scene, then invite the player to act.',
+      isOpeningScene: true,
+    });
 
-  campaign.activeAiProvider = openingScene.provider;
-  campaign.activeAiModel = openingScene.model;
-  campaign.activeAiMode = openingScene.mode;
-  campaign.lastAiAt = new Date();
+    campaign.activeAiProvider = openingScene.provider;
+    campaign.activeAiModel = openingScene.model;
+    campaign.activeAiMode = openingScene.mode;
+    campaign.lastAiAt = new Date();
 
-  return {
-    role: 'assistant',
-    content: openingScene.text,
-  };
+    return {
+      role: 'assistant',
+      content: openingScene.text,
+    };
+  } catch (error) {
+    console.error('Failed to build opening assistant message:', error);
+
+    return {
+      role: 'assistant',
+      content:
+        'Your campaign has been created, but the Dungeon Master could not generate the opening scene right now. Try sending your first action in a moment to continue the adventure.',
+    };
+  }
 }
 
 async function applyDerivedCampaignState({
@@ -350,19 +363,55 @@ async function applyDerivedCampaignState({
   userMessage,
   assistantMessage,
 }) {
-  const newMemories = await extractCampaignMemories({
-    campaign,
-    userMessage,
-    assistantMessage,
-  });
-  const inventoryUpdates = await extractInventoryUpdates({
-    campaign,
-    userMessage,
-    assistantMessage,
-  });
+  const [newMemories, inventoryUpdates] = await Promise.all([
+    safeExtractCampaignMemories({
+      campaign,
+      userMessage,
+      assistantMessage,
+    }),
+    safeExtractInventoryUpdates({
+      campaign,
+      userMessage,
+      assistantMessage,
+    }),
+  ]);
 
   mergeMemories(campaign, newMemories);
   mergeInventory(campaign, inventoryUpdates);
+}
+
+async function safeExtractCampaignMemories({
+  campaign,
+  userMessage,
+  assistantMessage,
+}) {
+  try {
+    return await extractCampaignMemories({
+      campaign,
+      userMessage,
+      assistantMessage,
+    });
+  } catch (error) {
+    console.error('Failed to extract campaign memories:', error);
+    return [];
+  }
+}
+
+async function safeExtractInventoryUpdates({
+  campaign,
+  userMessage,
+  assistantMessage,
+}) {
+  try {
+    return await extractInventoryUpdates({
+      campaign,
+      userMessage,
+      assistantMessage,
+    });
+  } catch (error) {
+    console.error('Failed to extract inventory updates:', error);
+    return [];
+  }
 }
 
 module.exports = {

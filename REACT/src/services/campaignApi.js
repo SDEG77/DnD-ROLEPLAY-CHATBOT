@@ -67,7 +67,8 @@ async function request(path, options = {}) {
   const data = await response.json()
 
   if (!response.ok) {
-    const error = new Error(data.error || 'Request failed.')
+    const detail = [data.error, data.detail].filter(Boolean).join('\n') || 'Request failed.'
+    const error = new Error(detail)
 
     if (data.campaign) {
       error.campaign = data.campaign
