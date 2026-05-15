@@ -1,4 +1,4 @@
-import { clearAuthSession, getCsrfToken, storeAuthSession } from '../utils/authStorage'
+import { clearAuthSession, getStoredCsrfToken, storeAuthSession } from '../utils/authStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -23,7 +23,9 @@ export async function loginUser(payload) {
 }
 
 export async function fetchCurrentUser() {
-  return request('/api/auth/me')
+  const data = await request('/api/auth/me')
+  storeAuthSession(data)
+  return data
 }
 
 export function logoutUser() {
@@ -36,7 +38,7 @@ export function logoutUser() {
 
 async function request(path, options = {}) {
   const method = options.method || 'GET'
-  const csrfToken = getCsrfToken()
+  const csrfToken = getStoredCsrfToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: 'include',
     headers: {
@@ -59,6 +61,10 @@ async function request(path, options = {}) {
     }
 
     throw error
+  }
+
+  if (data?.csrfToken) {
+    storeAuthSession(data)
   }
 
   return data
