@@ -55,7 +55,7 @@ async function register(req, res) {
       email,
       passwordHash,
     });
-    const csrfToken = setAuthCookies(res, signToken(user));
+    const csrfToken = setAuthCookies(req, res, signToken(user));
 
     return res.status(201).json({
       csrfToken,
@@ -97,7 +97,7 @@ async function login(req, res) {
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    const csrfToken = setAuthCookies(res, signToken(user));
+    const csrfToken = setAuthCookies(req, res, signToken(user));
 
     return res.json({
       csrfToken,
@@ -113,12 +113,12 @@ async function login(req, res) {
 }
 
 async function getCurrentUser(req, res) {
-  const csrfToken = setCsrfCookie(res);
+  const csrfToken = setCsrfCookie(req, res);
   return res.json({ csrfToken, user: req.user });
 }
 
 async function logout(req, res) {
-  clearAuthCookies(res);
+  clearAuthCookies(req, res);
   return res.json({ ok: true });
 }
 

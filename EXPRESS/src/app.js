@@ -11,12 +11,38 @@ const {
   isGroqConfigured,
 } = require('./services/geminiService');
 
+function getAllowedOrigins() {
+  const configuredOrigins = [
+    process.env.CLIENT_ORIGIN,
+    process.env.CORS_ALLOWED_ORIGINS,
+  ]
+    .filter(Boolean)
+    .flatMap((value) => value.split(','))
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (configuredOrigins.length > 0) {
+    return [...new Set(configuredOrigins)];
+  }
+
+  return ['http://localhost:5173', 'http://127.0.0.1:5173'];
+}
+
 function createApp() {
   const app = express();
+  const allowedOrigins = getAllowedOrigins();
+
+  app.set('trust proxy', 1);
 
   app.use(
     cors({
-      origin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+      },
       credentials: true,
     }),
   );
