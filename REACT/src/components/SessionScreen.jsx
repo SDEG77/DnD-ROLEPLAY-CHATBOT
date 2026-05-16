@@ -7,13 +7,20 @@ import {
   Minimize2,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   InventoryEditorModal,
   InventoryModal,
 } from './feedback'
 import CampaignManagerModal from './CampaignManagerModal'
 import { formatAiMode, formatAiProvider } from '../utils/campaign'
+
+function getTargetScrollTop(viewport, target, offset = 12) {
+  const viewportRect = viewport.getBoundingClientRect()
+  const targetRect = target.getBoundingClientRect()
+
+  return Math.max(viewport.scrollTop + (targetRect.top - viewportRect.top) - offset, 0)
+}
 
 function SessionScreen({
   user,
@@ -59,6 +66,8 @@ function SessionScreen({
   const latestUserMessageRef = useRef(null)
   const previousAssistantMessageIdRef = useRef(null)
   const scrollTimeoutRef = useRef(null)
+  const scrollRetryFrameRef = useRef(null)
+  const pendingScrollAssistantIdRef = useRef(null)
 
   const latestAssistantMessageId = useMemo(() => {
     if (!campaign?.messages?.length) {
@@ -131,12 +140,17 @@ function SessionScreen({
       if (scrollTimeoutRef.current) {
         window.clearTimeout(scrollTimeoutRef.current)
       }
+
+      if (scrollRetryFrameRef.current) {
+        window.cancelAnimationFrame(scrollRetryFrameRef.current)
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!latestAssistantMessageId) {
       previousAssistantMessageIdRef.current = null
+      pendingScrollAssistantIdRef.current = null
       return
     }
 
@@ -150,39 +164,69 @@ function SessionScreen({
     }
 
     previousAssistantMessageIdRef.current = latestAssistantMessageId
+    pendingScrollAssistantIdRef.current = latestAssistantMessageId
+  }, [latestAssistantMessageId])
 
-    const frame = window.requestAnimationFrame(() => {
+  useLayoutEffect(() => {
+    if (
+      loading ||
+      !latestAssistantMessageId ||
+      pendingScrollAssistantIdRef.current !== latestAssistantMessageId
+    ) {
+      return
+    }
+
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = null
+    }
+
+    if (scrollRetryFrameRef.current) {
+      window.cancelAnimationFrame(scrollRetryFrameRef.current)
+      scrollRetryFrameRef.current = null
+    }
+
+    let attempts = 0
+
+    const tryScroll = () => {
       const viewport = chatViewportRef.current
       const target = latestUserMessageRef.current
 
       if (!viewport || !target) {
+        attempts += 1
+
+        if (attempts < 10) {
+          scrollRetryFrameRef.current = window.requestAnimationFrame(tryScroll)
+        }
         return
       }
 
-      if (scrollTimeoutRef.current) {
-        window.clearTimeout(scrollTimeoutRef.current)
-      }
-
-      const targetTop = Math.max(target.offsetTop - 12, 0)
+      const targetTop = getTargetScrollTop(viewport, target)
 
       scrollTimeoutRef.current = window.setTimeout(() => {
         viewport.scrollTo({
           top: targetTop,
           behavior: 'smooth',
         })
+        pendingScrollAssistantIdRef.current = null
         scrollTimeoutRef.current = null
-      }, 80)
-    })
+      }, 100)
+    }
+
+    scrollRetryFrameRef.current = window.requestAnimationFrame(tryScroll)
 
     return () => {
-      window.cancelAnimationFrame(frame)
-
       if (scrollTimeoutRef.current) {
         window.clearTimeout(scrollTimeoutRef.current)
         scrollTimeoutRef.current = null
       }
+
+      if (scrollRetryFrameRef.current) {
+        window.cancelAnimationFrame(scrollRetryFrameRef.current)
+        scrollRetryFrameRef.current = null
+      }
     }
-  }, [latestAssistantMessageId, latestUserMessageId])
+  }, [chatViewportRef, latestAssistantMessageId, latestUserMessageId, loading])
 
   function openMobileMenu() {
     setMobileMenuOpen(true)
