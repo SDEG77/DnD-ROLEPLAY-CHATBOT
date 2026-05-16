@@ -7,41 +7,73 @@ function getCookieDomain() {
   return process.env.COOKIE_DOMAIN || undefined;
 }
 
-function getCookieSameSite() {
-  return process.env.COOKIE_SAME_SITE || 'lax';
+function getConfiguredCookieSameSite() {
+  return process.env.COOKIE_SAME_SITE || '';
 }
 
-function useSecureCookies() {
-  return process.env.COOKIE_SECURE === 'true';
+function getConfiguredCookieSecure() {
+  if (process.env.COOKIE_SECURE === 'true') {
+    return true;
+  }
+
+  if (process.env.COOKIE_SECURE === 'false') {
+    return false;
+  }
+
+  return null;
 }
 
-function getBaseCookieOptions() {
+function isProductionEnv() {
+  return process.env.NODE_ENV === 'production';
+}
+
+function getCookieSameSite(req) {
+  const configuredSameSite = getConfiguredCookieSameSite();
+
+  if (configuredSameSite) {
+    return configuredSameSite;
+  }
+
+  return isProductionEnv() ? 'none' : 'lax';
+}
+
+function useSecureCookies(req) {
+  const configuredSecure = getConfiguredCookieSecure();
+
+  if (configuredSecure !== null) {
+    return configuredSecure;
+  }
+
+  return isProductionEnv() || req.secure;
+}
+
+function getBaseCookieOptions(req) {
   return {
     httpOnly: true,
-    secure: useSecureCookies(),
-    sameSite: getCookieSameSite(),
+    secure: useSecureCookies(req),
+    sameSite: getCookieSameSite(req),
     domain: getCookieDomain(),
     path: '/',
   };
 }
 
-function getAuthCookieOptions() {
+function getAuthCookieOptions(req) {
   return {
-    ...getBaseCookieOptions(),
+    ...getBaseCookieOptions(req),
     maxAge: getTokenMaxAgeMs(),
   };
 }
 
-function getCsrfCookieOptions() {
+function getCsrfCookieOptions(req) {
   return {
-    ...getBaseCookieOptions(),
+    ...getBaseCookieOptions(req),
     httpOnly: false,
     maxAge: getTokenMaxAgeMs(),
   };
 }
 
-function getClearCookieOptions() {
-  const { maxAge, ...options } = getBaseCookieOptions();
+function getClearCookieOptions(req) {
+  const { maxAge, ...options } = getBaseCookieOptions(req);
   return options;
 }
 
@@ -59,23 +91,23 @@ function createCsrfToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-function setAuthCookies(res, token) {
+function setAuthCookies(req, res, token) {
   const csrfToken = createCsrfToken();
 
-  res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
-  res.cookie(CSRF_COOKIE_NAME, csrfToken, getCsrfCookieOptions());
+  res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions(req));
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, getCsrfCookieOptions(req));
 
   return csrfToken;
 }
 
-function setCsrfCookie(res) {
+function setCsrfCookie(req, res) {
   const csrfToken = createCsrfToken();
-  res.cookie(CSRF_COOKIE_NAME, csrfToken, getCsrfCookieOptions());
+  res.cookie(CSRF_COOKIE_NAME, csrfToken, getCsrfCookieOptions(req));
   return csrfToken;
 }
 
-function clearAuthCookies(res) {
-  const clearOptions = getClearCookieOptions();
+function clearAuthCookies(req, res) {
+  const clearOptions = getClearCookieOptions(req);
   res.clearCookie(AUTH_COOKIE_NAME, clearOptions);
   res.clearCookie(CSRF_COOKIE_NAME, {
     ...clearOptions,

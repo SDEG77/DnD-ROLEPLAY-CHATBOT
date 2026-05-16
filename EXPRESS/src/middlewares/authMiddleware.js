@@ -24,7 +24,7 @@ async function requireAuth(req, res, next) {
     const user = await User.findById(payload.sub).select('_id name email').lean();
 
     if (!user) {
-      clearAuthCookies(res);
+      clearAuthCookies(req, res);
       return res.status(401).json({ error: 'User account is no longer available.' });
     }
 
@@ -32,7 +32,7 @@ async function requireAuth(req, res, next) {
     return next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      clearAuthCookies(res);
+      clearAuthCookies(req, res);
       return res.status(401).json({ error: 'Authentication token is invalid or expired.' });
     }
 
