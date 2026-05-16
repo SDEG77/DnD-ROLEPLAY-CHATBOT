@@ -7,7 +7,7 @@ import {
   Minimize2,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   InventoryEditorModal,
   InventoryModal,
@@ -56,6 +56,33 @@ function SessionScreen({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobileLayout, setIsMobileLayout] = useState(false)
+  const latestUserMessageRef = useRef(null)
+  const previousAssistantMessageIdRef = useRef(null)
+  const scrollTimeoutRef = useRef(null)
+
+  const latestAssistantMessageId = useMemo(() => {
+    if (!campaign?.messages?.length) {
+      return null
+    }
+
+    const latestAssistantMessage = [...campaign.messages]
+      .reverse()
+      .find((message) => message.role === 'assistant')
+
+    return latestAssistantMessage?._id || null
+  }, [campaign?.messages])
+
+  const latestUserMessageId = useMemo(() => {
+    if (!campaign?.messages?.length) {
+      return null
+    }
+
+    const latestUserMessage = [...campaign.messages]
+      .reverse()
+      .find((message) => message.role === 'user')
+
+    return latestUserMessage?._id || null
+  }, [campaign?.messages])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 720px)')
@@ -98,6 +125,64 @@ function SessionScreen({
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [mobileMenuOpen])
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!latestAssistantMessageId) {
+      previousAssistantMessageIdRef.current = null
+      return
+    }
+
+    if (!previousAssistantMessageIdRef.current) {
+      previousAssistantMessageIdRef.current = latestAssistantMessageId
+      return
+    }
+
+    if (previousAssistantMessageIdRef.current === latestAssistantMessageId) {
+      return
+    }
+
+    previousAssistantMessageIdRef.current = latestAssistantMessageId
+
+    const frame = window.requestAnimationFrame(() => {
+      const viewport = chatViewportRef.current
+      const target = latestUserMessageRef.current
+
+      if (!viewport || !target) {
+        return
+      }
+
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current)
+      }
+
+      const targetTop = Math.max(target.offsetTop - 12, 0)
+
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        viewport.scrollTo({
+          top: targetTop,
+          behavior: 'smooth',
+        })
+        scrollTimeoutRef.current = null
+      }, 80)
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current)
+        scrollTimeoutRef.current = null
+      }
+    }
+  }, [latestAssistantMessageId, latestUserMessageId])
 
   function openMobileMenu() {
     setMobileMenuOpen(true)
@@ -224,7 +309,15 @@ function SessionScreen({
 
         <section className="chat-log" ref={chatViewportRef}>
           {campaign.messages.map((message) => (
-            <article key={message._id} className={`message ${message.role}`}>
+            <article
+              key={message._id}
+              ref={
+                message._id === latestUserMessageId && message.role === 'user'
+                  ? latestUserMessageRef
+                  : null
+              }
+              className={`message ${message.role}`}
+            >
               <p className="message-role">
                 {message.role === 'assistant' ? 'Dungeon Master' : campaign.characterName}
               </p>
