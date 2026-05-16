@@ -58,18 +58,6 @@ export function useCampaignSession(userId, onAuthFailure) {
     }
   }, [userId])
 
-  useEffect(() => {
-    if (!chatViewportRef.current || !campaign?.messages?.length) {
-      return
-    }
-
-    const frame = window.requestAnimationFrame(() => {
-      scrollChatToBottom('auto')
-    })
-
-    return () => window.cancelAnimationFrame(frame)
-  }, [campaign?.messages?.length])
-
   const latestAssistantMessage = useMemo(() => {
     if (!campaign?.messages?.length) {
       return null
