@@ -4,7 +4,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "vitest run --globals --setupFiles test/setup.js",
+    "test:watch": "vitest --globals --setupFiles test/setup.js",
+    "test:unit": "vitest run --globals --setupFiles test/setup.js test/unit",
+    "test:feature": "vitest run --globals --setupFiles test/setup.js test/feature"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +24,9 @@
     "mongoose": "^8.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.1.1",
+    "vitest": "^3.2.4"
   }
 }
