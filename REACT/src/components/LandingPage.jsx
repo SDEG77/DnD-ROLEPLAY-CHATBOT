@@ -1,3 +1,4 @@
+import React from 'react'
 import { ArrowRight, BookOpenText, Compass, ScrollText, Sparkles, Swords } from 'lucide-react'
 import { Link } from 'react-router-dom'
 

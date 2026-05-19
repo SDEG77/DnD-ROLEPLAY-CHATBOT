@@ -1,5 +1,4 @@
 const request = require('supertest');
-const { describe, expect, it } = require('vitest');
 const { createApp } = require('../../src/app');
 
 const app = createApp();
