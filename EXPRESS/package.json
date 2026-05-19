@@ -5,10 +5,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "vitest run --globals --setupFiles test/setup.js",
-    "test:watch": "vitest --globals --setupFiles test/setup.js",
-    "test:unit": "vitest run --globals --setupFiles test/setup.js test/unit",
-    "test:feature": "vitest run --globals --setupFiles test/setup.js test/feature"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run test/unit",
+    "test:feature": "vitest run test/feature"
   },
   "keywords": [],
   "author": "",
