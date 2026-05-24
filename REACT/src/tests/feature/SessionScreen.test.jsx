@@ -144,7 +144,7 @@ describe('SessionScreen speech playback', () => {
     expect(synthesizeCampaignMessageSpeech).toHaveBeenCalledWith('campaign-1', 'message-assistant-1')
     expect(createObjectURL).toHaveBeenCalledTimes(1)
 
-    const readOutLoudButton = screen.getByRole('button', { name: /read out loud/i })
+    const readOutLoudButton = screen.getByText('Read Out Loud')
 
     fireEvent.click(readOutLoudButton)
 
@@ -156,13 +156,13 @@ describe('SessionScreen speech playback', () => {
     expect(audioInstances[0].play).toHaveBeenCalledTimes(1)
     expect(synthesizeCampaignMessageSpeech).toHaveBeenCalledTimes(1)
 
-    const stopButton = await screen.findByRole('button', { name: /stop reading/i })
+    const stopButton = await screen.findByText('Stop Reading')
     fireEvent.click(stopButton)
 
     expect(audioInstances[0].pause).toHaveBeenCalledTimes(1)
     expect(audioInstances[0].currentTime).toBe(0)
 
-    fireEvent.click(screen.getByRole('button', { name: /read out loud/i }))
+    fireEvent.click(screen.getByText('Read Out Loud'))
 
     await waitFor(() => {
       expect(globalThis.Audio).toHaveBeenCalledTimes(2)
