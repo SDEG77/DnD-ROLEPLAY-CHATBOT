@@ -1662,9 +1662,8 @@
   }
 
   .choice-button {
-    padding-top: 70px;
-    padding-bottom: 70px;
-
+    padding: 20px 18px;
+    border-radius: 14px;
     width: 100%;
     text-align: center;
   }
