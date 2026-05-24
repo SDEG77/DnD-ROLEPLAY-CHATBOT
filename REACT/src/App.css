@@ -909,7 +909,10 @@
 .landing-nav-actions,
 .landing-cta-row,
 .landing-stat-strip,
-.password-panel-header {
+.password-panel-header,
+.admin-panel-callout,
+.admin-inline-icon,
+.admin-nav {
   display: flex;
   align-items: center;
 }
@@ -1241,7 +1244,8 @@
 
 .auth-card-copy,
 .auth-form,
-.password-rule-list {
+.password-rule-list,
+.admin-auth-copy {
   display: grid;
   gap: 14px;
 }
@@ -1301,6 +1305,76 @@
 }
 
 .auth-switch-copy a {
+  color: var(--accent-soft);
+}
+
+.admin-shell {
+  gap: 18px;
+}
+
+.admin-auth-card,
+.admin-panel,
+.admin-users-panel {
+  background:
+    radial-gradient(circle at top left, rgba(241, 187, 99, 0.16), transparent 30%),
+    linear-gradient(145deg, rgba(42, 22, 15, 0.98), rgba(22, 14, 10, 0.98));
+}
+
+.admin-panel-callout {
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(218, 188, 138, 0.16);
+  background: rgba(255, 248, 232, 0.04);
+}
+
+.admin-panel-callout strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-strong);
+}
+
+.admin-panel-callout p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.admin-inline-icon {
+  width: 42px;
+  height: 42px;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(241, 187, 99, 0.12);
+  color: var(--accent-soft);
+  flex-shrink: 0;
+}
+
+.admin-stat-strip {
+  position: sticky;
+  top: 108px;
+  z-index: 4;
+}
+
+.admin-metric-grid {
+  align-items: stretch;
+}
+
+.admin-lists {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.landing-promise-list-item {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(218, 188, 138, 0.14);
+  background: rgba(255, 248, 232, 0.04);
+  color: var(--text-soft);
+}
+
+.admin-tab-active {
+  border-color: rgba(241, 187, 99, 0.4);
+  background: rgba(241, 187, 99, 0.12);
   color: var(--accent-soft);
 }
 
@@ -1427,6 +1501,10 @@
 
   .landing-hero,
   .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-lists {
     grid-template-columns: 1fr;
   }
 
@@ -1705,6 +1783,11 @@
   .landing-nav,
   .landing-footer-card,
   .landing-stat-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-panel-callout {
     flex-direction: column;
     align-items: flex-start;
   }

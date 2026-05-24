@@ -2,7 +2,9 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
+const adminController = require('./controllers/adminController');
 const { requireAuth } = require('./middlewares/authMiddleware');
 const { requireCsrf } = require('./middlewares/csrfMiddleware');
 const {
@@ -52,6 +54,8 @@ function createApp() {
   app.get('/', (req, res) => {
     res.send('D&D Gemini DM API is ready.');
   });
+
+  app.get('/endmin', adminController.enterAdmin);
 
   app.get('/api/health', (req, res) => {
     res.json({
@@ -104,6 +108,7 @@ function createApp() {
   });
 
   app.use('/api/auth', authRoutes);
+  app.use('/api/admin', adminRoutes);
   app.use('/api/campaigns', requireAuth, requireCsrf, campaignRoutes);
 
   return app;
