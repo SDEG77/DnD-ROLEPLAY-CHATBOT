@@ -13,6 +13,7 @@ const {
   mergeMemories,
   syncSetupMemories,
 } = require('../utils/campaignState');
+const { synthesizeDungeonMasterSpeech } = require('../services/ttsService');
 
 async function listCampaigns(req, res) {
   try {
@@ -263,6 +264,42 @@ async function addMessage(req, res) {
   }
 }
 
+async function synthesizeMessageSpeech(req, res) {
+  try {
+    const campaign = await Campaign.findOne({
+      _id: req.params.campaignId,
+      owner: req.user._id,
+    });
+
+    if (!campaign) {
+      return res.status(404).json({ error: 'Campaign not found.' });
+    }
+
+    const message = campaign.messages.id(req.params.messageId);
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found.' });
+    }
+
+    if (message.role !== 'assistant') {
+      return res.status(400).json({ error: 'Only Dungeon Master messages can be read aloud.' });
+    }
+
+    const { audioBuffer, contentType } = await synthesizeDungeonMasterSpeech(message.content);
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Length', audioBuffer.length);
+    res.setHeader('Cache-Control', 'no-store');
+
+    return res.send(audioBuffer);
+  } catch (error) {
+    console.error('Failed to synthesize message speech:', error);
+    return res.status(500).json({
+      error: error.message || 'Failed to synthesize message speech.',
+    });
+  }
+}
+
 async function addInventoryItem(req, res) {
   try {
     const campaign = await Campaign.findOne({
@@ -449,6 +486,7 @@ module.exports = {
   deleteCampaign,
   getCampaign,
   listCampaigns,
+  synthesizeMessageSpeech,
   updateCampaign,
   updateInventoryItem,
 };

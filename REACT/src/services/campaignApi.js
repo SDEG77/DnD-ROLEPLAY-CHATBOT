@@ -58,6 +58,38 @@ export async function deleteInventoryItem(campaignId, itemId) {
   })
 }
 
+export async function synthesizeCampaignMessageSpeech(campaignId, messageId) {
+  const csrfToken = getStoredCsrfToken()
+  const response = await fetch(`${API_BASE_URL}/api/campaigns/${campaignId}/messages/${messageId}/tts`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    },
+  })
+
+  if (!response.ok) {
+    let detail = 'Failed to generate speech.'
+
+    try {
+      const data = await response.json()
+      detail = [data.error, data.detail].filter(Boolean).join('\n') || detail
+    } catch {
+      detail = response.statusText || detail
+    }
+
+    if (response.status === 401) {
+      clearAuthSession()
+    }
+
+    const error = new Error(detail)
+    error.status = response.status
+    throw error
+  }
+
+  return response.blob()
+}
+
 async function request(path, options = {}) {
   const method = options.method || 'GET'
   const csrfToken = getStoredCsrfToken()
