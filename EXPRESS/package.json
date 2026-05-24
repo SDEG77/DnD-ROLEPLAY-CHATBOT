@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "admin:keygen": "node scripts/generateAdminKey.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run test/unit",

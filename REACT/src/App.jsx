@@ -5,29 +5,46 @@ import IntroScreen from './components/IntroScreen'
 import SessionScreen from './components/SessionScreen'
 import AuthPage from './components/AuthPage'
 import LandingPage from './components/LandingPage'
+import AdminUnlockPage from './components/AdminUnlockPage'
+import AdminConsolePage from './components/AdminConsolePage'
 import { AiInfoModal, ErrorViewer, Toast } from './components/feedback'
 import { useCampaignSession } from './hooks/useCampaignSession'
 import { fetchCurrentUser, logoutUser } from './services/authApi'
-import { getStoredUser } from './utils/authStorage'
+import { fetchAdminSession, unlockAdminSession } from './services/adminApi'
+import { clearAuthSession, getStoredUser } from './utils/authStorage'
+import { clearAdminSession } from './utils/adminStorage'
 
 function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const [authReady, setAuthReady] = useState(false)
+  const [adminReady, setAdminReady] = useState(false)
   const [user, setUser] = useState(() => getStoredUser())
+  const [adminSession, setAdminSession] = useState(null)
+  const [adminUnlocking, setAdminUnlocking] = useState(false)
+  const [adminError, setAdminError] = useState('')
 
   useEffect(() => {
-    void (async () => {
-      try {
-        const data = await fetchCurrentUser()
-        setUser(data.user)
-      } catch {
-        logoutUser()
+    void Promise.allSettled([fetchCurrentUser(), fetchAdminSession()]).then((results) => {
+      const [userResult, adminResult] = results
+
+      if (userResult.status === 'fulfilled') {
+        setUser(userResult.value.user)
+      } else {
+        clearAuthSession()
         setUser(null)
-      } finally {
-        setAuthReady(true)
       }
-    })()
+
+      if (adminResult.status === 'fulfilled') {
+        setAdminSession(adminResult.value.admin)
+      } else {
+        clearAdminSession()
+        setAdminSession(null)
+      }
+
+      setAuthReady(true)
+      setAdminReady(true)
+    })
   }, [])
 
   function handleAuthSuccess(nextUser) {
@@ -45,7 +62,28 @@ function App() {
     })
   }
 
-  if (!authReady) {
+  async function handleAdminUnlock(payload) {
+    setAdminUnlocking(true)
+    setAdminError('')
+
+    try {
+      const data = await unlockAdminSession(payload)
+      setAdminSession(data.admin)
+      navigate('/endmin/dashboard', { replace: true })
+    } catch (error) {
+      setAdminError(error.message || 'Failed to unlock admin console.')
+    } finally {
+      setAdminUnlocking(false)
+    }
+  }
+
+  function handleAdminLogout() {
+    clearAdminSession()
+    setAdminSession(null)
+    setAdminError('')
+  }
+
+  if (!authReady || !adminReady) {
     return (
       <div className="auth-shell">
         <section className="auth-card auth-card-compact">
@@ -83,6 +121,46 @@ function App() {
             <AuthenticatedExperience user={user} onLogout={handleLogout} />
           ) : (
             <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/endmin"
+        element={
+          <AdminUnlockPage
+            grantToken={new URLSearchParams(location.search).get('grant') || ''}
+            adminSession={adminSession}
+            onUnlock={handleAdminUnlock}
+            unlocking={adminUnlocking}
+            errorMessage={adminError}
+          />
+        }
+      />
+      <Route
+        path="/endmin/dashboard"
+        element={
+          adminSession ? (
+            <AdminConsolePage
+              adminSession={adminSession}
+              view="dashboard"
+              onAdminLogout={handleAdminLogout}
+            />
+          ) : (
+            <Navigate to="/endmin" replace />
+          )
+        }
+      />
+      <Route
+        path="/endmin/users"
+        element={
+          adminSession ? (
+            <AdminConsolePage
+              adminSession={adminSession}
+              view="users"
+              onAdminLogout={handleAdminLogout}
+            />
+          ) : (
+            <Navigate to="/endmin" replace />
           )
         }
       />

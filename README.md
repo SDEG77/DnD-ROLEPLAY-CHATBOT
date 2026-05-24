@@ -20,6 +20,11 @@ GEMINI_MODEL=gemini-2.5-flash
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
 GROQ_FALLBACK_MODELS=openai/gpt-oss-20b,llama-3.1-8b-instant,openai/gpt-oss-120b
+
+JWT_SECRET=replace_this_with_a_long_random_secret
+ADMIN_KEY_SECRET=replace_this_with_a_different_long_random_secret
+ADMIN_SESSION_SECRET=replace_this_with_another_long_random_secret
+ADMIN_ENTRY_SECRET=replace_this_with_a_short_lived_gate_secret
 ```
 
 3. From the project root, build and start the stack:
@@ -43,6 +48,69 @@ docker compose down -v
 - `docker compose restart express` reloads backend code and env changes.
 - `docker compose down` stops the stack but keeps MongoDB data.
 - `docker compose down -v` stops the stack and deletes the MongoDB volume for this project.
+
+## Admin Side
+
+The app now includes an owner-only admin side with:
+
+- An encrypted key-file unlock flow instead of a normal login
+- A dashboard page for site metrics
+- A user accounts page that lists account totals and email addresses
+
+### How Admin Access Works
+
+1. Open the backend gate at `http://localhost:3000/endmin`
+2. The backend issues a short-lived signed grant and redirects you to the React admin unlock page
+3. Upload your encrypted admin key file and enter its passphrase
+4. The backend validates the decrypted key payload against `ADMIN_KEY_SECRET`
+5. If it matches, an admin-only session cookie is issued
+
+### How To Create The Encrypted Admin Key File
+
+1. Set strong secrets in `EXPRESS/.env`:
+
+```env
+JWT_SECRET=use_a_long_random_value
+ADMIN_SESSION_SECRET=use_a_different_long_random_value
+ADMIN_ENTRY_SECRET=use_a_third_long_random_value
+ADMIN_KEY_SECRET=use_a_fourth_long_random_value
+```
+
+2. Build or start the stack so the Express container has the latest code.
+
+3. Generate the encrypted key file from the Express container:
+
+```bash
+docker compose exec express npm run admin:keygen -- /app/admin-owner.key.json "your-very-strong-passphrase" "Sigrae Owner Key"
+```
+
+If you prefer to generate it locally with Node/PowerShell instead of Docker:
+
+```powershell
+$env:ADMIN_KEY_SECRET='paste-your-admin-key-secret-here'; npm run admin:keygen -- .\admin-owner.key.json "your-very-strong-passphrase" "Sigrae Owner Key"
+```
+
+4. Copy that generated file out of the container if needed, or create it against a mounted path inside `EXPRESS/`.
+
+Example writing it directly into the mounted project folder:
+
+```bash
+docker compose exec express npm run admin:keygen -- /app/admin-owner.key.json "your-very-strong-passphrase" "Sigrae Owner Key"
+```
+
+5. Keep the file and passphrase separate.
+
+- Store the key file in a secure offline or password-managed location
+- Never commit the key file to Git
+- Never share `ADMIN_KEY_SECRET`
+- Rotate the file by changing `ADMIN_KEY_SECRET` and generating a new key file
+
+### Recommended Key-File Security Practices
+
+- Use a passphrase of at least 16 to 24 characters
+- Prefer a random multi-word passphrase or password-manager generated secret
+- Keep `ADMIN_KEY_SECRET`, `ADMIN_SESSION_SECRET`, and `ADMIN_ENTRY_SECRET` all different
+- If you believe the key file was copied, rotate `ADMIN_KEY_SECRET` immediately and generate a new file
 
 ## What The App Does
 
