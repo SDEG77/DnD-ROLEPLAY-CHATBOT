@@ -9,6 +9,7 @@ router.post('/', controller.createCampaign);
 router.put('/:campaignId', controller.updateCampaign);
 router.delete('/:campaignId', controller.deleteCampaign);
 router.post('/:campaignId/messages', controller.addMessage);
+router.post('/:campaignId/messages/:messageId/tts', controller.synthesizeMessageSpeech);
 router.post('/:campaignId/inventory', controller.addInventoryItem);
 router.put('/:campaignId/inventory/:itemId', controller.updateInventoryItem);
 router.delete('/:campaignId/inventory/:itemId', controller.deleteInventoryItem);

@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   Backpack,
   Bot,
@@ -5,6 +6,7 @@ import {
   ChevronsDown,
   Menu,
   Minimize2,
+  Volume2,
   X,
 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -14,6 +16,7 @@ import {
 } from './feedback'
 import CampaignManagerModal from './CampaignManagerModal'
 import { formatAiMode, formatAiProvider } from '../utils/campaign'
+import { synthesizeCampaignMessageSpeech } from '../services/campaignApi'
 
 function getTargetScrollTop(viewport, target, offset = 12) {
   const viewportRect = viewport.getBoundingClientRect()
@@ -68,6 +71,11 @@ function SessionScreen({
   const scrollTimeoutRef = useRef(null)
   const scrollRetryFrameRef = useRef(null)
   const pendingScrollAssistantIdRef = useRef(null)
+  const activeAudioRef = useRef(null)
+  const cachedSpeechUrlMapRef = useRef(new Map())
+  const pendingSpeechRequestMapRef = useRef(new Map())
+  const [activeSpeechMessageId, setActiveSpeechMessageId] = useState(null)
+  const [loadingSpeechMessageId, setLoadingSpeechMessageId] = useState(null)
 
   const latestAssistantMessageId = useMemo(() => {
     if (!campaign?.messages?.length) {
@@ -91,6 +99,16 @@ function SessionScreen({
       .find((message) => message.role === 'user')
 
     return latestUserMessage?._id || null
+  }, [campaign?.messages])
+
+  const latestAssistantMessage = useMemo(() => {
+    if (!campaign?.messages?.length) {
+      return null
+    }
+
+    return [...campaign.messages]
+      .reverse()
+      .find((message) => message.role === 'assistant') || null
   }, [campaign?.messages])
 
   useEffect(() => {
@@ -144,8 +162,28 @@ function SessionScreen({
       if (scrollRetryFrameRef.current) {
         window.cancelAnimationFrame(scrollRetryFrameRef.current)
       }
+
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause()
+        activeAudioRef.current = null
+      }
+
+      for (const audioUrl of cachedSpeechUrlMapRef.current.values()) {
+        URL.revokeObjectURL(audioUrl)
+      }
+
+      cachedSpeechUrlMapRef.current.clear()
+      pendingSpeechRequestMapRef.current.clear()
     }
   }, [])
+
+  useEffect(() => {
+    if (!latestAssistantMessage?._id || !campaign?._id) {
+      return
+    }
+
+    void prefetchSpeechForMessage(latestAssistantMessage._id)
+  }, [campaign?._id, latestAssistantMessage])
 
   useEffect(() => {
     if (!latestAssistantMessageId) {
@@ -261,6 +299,85 @@ function SessionScreen({
     setTopbarVisible(false)
   }
 
+  async function prefetchSpeechForMessage(messageId) {
+    const cachedAudioUrl = cachedSpeechUrlMapRef.current.get(messageId)
+
+    if (cachedAudioUrl) {
+      return cachedAudioUrl
+    }
+
+    const pendingRequest = pendingSpeechRequestMapRef.current.get(messageId)
+
+    if (pendingRequest) {
+      return pendingRequest
+    }
+
+    const request = synthesizeCampaignMessageSpeech(campaign._id, messageId)
+      .then((audioBlob) => {
+        const audioUrl = URL.createObjectURL(audioBlob)
+        cachedSpeechUrlMapRef.current.set(messageId, audioUrl)
+        pendingSpeechRequestMapRef.current.delete(messageId)
+        return audioUrl
+      })
+      .catch((error) => {
+        pendingSpeechRequestMapRef.current.delete(messageId)
+        throw error
+      })
+
+    pendingSpeechRequestMapRef.current.set(messageId, request)
+
+    return request
+  }
+
+  async function handleReadOutLoud(message) {
+    if (activeSpeechMessageId === message._id) {
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause()
+        activeAudioRef.current.currentTime = 0
+        activeAudioRef.current = null
+      }
+
+      setActiveSpeechMessageId(null)
+      setLoadingSpeechMessageId(null)
+      return
+    }
+
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause()
+      activeAudioRef.current = null
+    }
+
+    setLoadingSpeechMessageId(message._id)
+
+    try {
+      const audioUrl = await prefetchSpeechForMessage(message._id)
+      const audio = new Audio(audioUrl)
+
+      audio.onended = () => {
+        setActiveSpeechMessageId((currentId) => (currentId === message._id ? null : currentId))
+        if (activeAudioRef.current === audio) {
+          activeAudioRef.current = null
+        }
+      }
+
+      audio.onerror = () => {
+        setActiveSpeechMessageId((currentId) => (currentId === message._id ? null : currentId))
+        if (activeAudioRef.current === audio) {
+          activeAudioRef.current = null
+        }
+      }
+
+      activeAudioRef.current = audio
+      setActiveSpeechMessageId(message._id)
+      await audio.play()
+    } catch (error) {
+      console.error('Failed to play Dungeon Master voice:', error)
+      setActiveSpeechMessageId(null)
+    } finally {
+      setLoadingSpeechMessageId((currentId) => (currentId === message._id ? null : currentId))
+    }
+  }
+
   return (
     <>
       {!topbarVisible ? (
@@ -366,6 +483,26 @@ function SessionScreen({
                 {message.role === 'assistant' ? 'Dungeon Master' : campaign.characterName}
               </p>
               <p className="message-content">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <button
+                  type="button"
+                  className={`ghost message-tts-button ${
+                    activeSpeechMessageId === message._id ? 'is-speaking' : ''
+                  }`}
+                  onClick={() => void handleReadOutLoud(message)}
+                  disabled={loadingSpeechMessageId === message._id}
+                  aria-label={`Read Dungeon Master message out loud${
+                    activeSpeechMessageId === message._id ? ' again to stop playback' : ''
+                  }`}
+                >
+                  <Volume2 size={18} />
+                  {loadingSpeechMessageId === message._id
+                    ? 'Preparing Voice...'
+                    : activeSpeechMessageId === message._id
+                      ? 'Stop Reading'
+                      : 'Read Out Loud'}
+                </button>
+              ) : null}
             </article>
           ))}
         </section>
